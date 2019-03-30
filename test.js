@@ -7,7 +7,7 @@ function primes() {
 		let tail = a.tail.filter(x => x % head !== 0);
 		yield* Lazy.cons(head, sieve(tail));
 	}
-	return Lazy.from(() => sieve(Lazy.naturals(2)), true);
+	return Lazy.from(() => sieve(Lazy.naturals(2)));
 }
 
 // Alternative without generators, using Lazy.from to break infinite recursion
@@ -15,7 +15,7 @@ function primes2() {
 	function sieve(a) {
 		let head = a.head;
 		let tail = a.tail.filter(x => x % head !== 0);
-		return Lazy.cons(head, Lazy.from(() => sieve(tail)), true);
+		return Lazy.cons(head, Lazy.from(() => sieve(tail)));
 	}
 	return sieve(Lazy.naturals(2));
 }
@@ -25,13 +25,13 @@ function fibs() {
 	function* f(a, b) {
 		yield* Lazy.cons(a, f(b, a + b));
 	}
-	return Lazy.from(() => f(1, 1), true);
+	return Lazy.from(() => f(1, 1));
 }
 
 // Alternative without generators, using Lazy.from to break recursion
 function fibs2() {
 	function f(a, b) {
-		return Lazy.cons(a, Lazy.from(() => f(b, a + b)), true);
+		return Lazy.cons(a, Lazy.from(() => f(b, a + b)));
 	}
 	return f(1, 1);
 }
