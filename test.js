@@ -36,18 +36,16 @@ function fibs2() {
 	return f(1, 1);
 }
 
-//console.log([ ... primes().take(10) ]);
-//console.log(fibs2().length);
-// console.log([ ... fibs().take(10) ]);
+console.log([ ... primes().take(10) ]);
+console.log(fibs2().length);
+console.log([ ... fibs().take(10) ]);
 
-/*
 let sum = (a, b) => a + b
 let isEven = n => n % 2 === 0;
 let euler2 = fibs().takeWhile(n => n < 4000000).filter(isEven).reduce(sum);
 console.log(euler2);
-*/
 
 let a = Lazy.cons(1, [2, 3, 4, 5]);
 console.log([ ... a ]);
 
-let b = Lazy.from(1);
+// let b = Lazy.from(1);
