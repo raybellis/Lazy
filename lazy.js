@@ -172,10 +172,8 @@ class Lazy {
 			}
 		}, orig.infinite);
 	}
-}
 
-Object.defineProperty(Lazy, 'from', {
-	value: function(f, infinite = false) {
+	static from(f, infinite = false) {
 		if (typeof f !== 'function') {
 			throw new TypeError('.from requires a function parameter');
 		}
@@ -183,10 +181,8 @@ Object.defineProperty(Lazy, 'from', {
 			yield* f();
 		}, infinite);
 	}
-});
 
-Object.defineProperty(Lazy, 'cons', {
-	value: function(a, b, infinite) {
+	static cons(a, b, infinite) {
 		var infinite;
 		if (b[SI] === undefined) {
 			throw new TypeError('.cons requires an iterable second parameter');
@@ -199,10 +195,8 @@ Object.defineProperty(Lazy, 'cons', {
 			yield* b;
 		}, infinite) ;
 	}
-});
 
-Object.defineProperty(Lazy, 'naturals', {
-	value: function(n = 0) {
+	static naturals(n = 0) {
 
 		if (typeof n === 'number') {
 			if (n < 0) {
@@ -219,10 +213,8 @@ Object.defineProperty(Lazy, 'naturals', {
 			}
 		}, true);
 	}
-});
 
-Object.defineProperty(Lazy, 'zip', {
-	value: function(a, b) {
+	static zip(a, b) {
 
 		var sa = a[SI];
 		var sb = b[SI];
@@ -243,21 +235,17 @@ Object.defineProperty(Lazy, 'zip', {
 			}
 		}, a.infinite && b.infinite);
 	}
-});
 
-Object.defineProperty(Lazy, 'zipWith', {
-	value: function(f, a, b) {
+	static zipWith(f, a, b) {
 		return Lazy.zip(a, b).map(([a, b]) => f(a, b));
 	}
-});
 
-Object.defineProperty(Array.prototype, 'lazy', {
-	get: function() {
+	static lazy() {
 		var orig = this;
 		return new Lazy(function*() {
 			yield* orig;
 		});
 	}
-});
+}
 
 module.exports = Lazy;
