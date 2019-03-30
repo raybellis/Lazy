@@ -1,7 +1,3 @@
-const SI = Symbol.iterator;
-
-class InfiniteSequenceError extends Error { };
-
 /*
  * Wraps a generator with a Lazy sequence object that allows
  * standard list processing functions to be chained together
@@ -12,33 +8,16 @@ class InfiniteSequenceError extends Error { };
  * The Lazy sequence object is itself iterable.
  */
 
+const SI = Symbol.iterator;
+
 class Lazy {
 
-	constructor(iterator, infinite = false) {
+	constructor(iterator) {
 		if (typeof iterator !== 'function') {
 			throw new TypeError();
 		}
 
 		Object.defineProperty(this, SI, { value: iterator });
-		Object.defineProperty(this, 'infinite', { value: infinite });
-	}
-
-	/*
-	 * Returns the length of the sequence, if possible
-	 *
-	 * NB: this function is of O(n) complexity, not O(1)
-	 *
-	 */
-	get length() {
-		if (this.infinite) {
-			return Infinity;
-		} else {
-			let n = 0;
-			for (let k of this) {
-				n++;
-			}
-			return n;
-		}
 	}
 
 	get head() {
@@ -51,38 +30,38 @@ class Lazy {
 	}
 
 	forEach(cb, ctx) {
-		if (this.infinite) {
-			throw new InfiniteSequenceError();
-		}
+		let index = 0;
 		for (let k of this) {
-			cb.call(ctx, k);
+			cb.call(ctx, k, index++);
 		}
-	}
+        }
 
 	map(cb, ctx) {
 		if (typeof cb !== 'function') {
 			throw new TypeError();
 		}
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
+			let index = 0;
 			for (let k of orig) {
-				yield cb.call(ctx, k);
+				yield cb.call(ctx, k, index++);
 			}
-		}, orig.infinite);
+		});
 	}
 
 	filter(pred, ctx) {
 		if (typeof pred !== 'function') {
 			throw new TypeError();
 		}
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
+			let index = 0;
 			for (let k of orig) {
-				if (pred.call(ctx, k)) {
+				if (pred.call(ctx, k, index++)) {
 					yield k;
 				}
 			}
-		}, orig.infinite);
+		});
 	}
 
 	reduce(f) {
@@ -91,23 +70,20 @@ class Lazy {
 			throw new TypeError();
 		}
 
-		if (this.infinite) {
-			throw new InfiniteSequenceError();
-		}
-
 		let prev = this.head;
 		let tail = this.tail;
+		let index = 0;
 		for (let current of tail) {
-			prev = f(prev, current);
+			prev = f(prev, current, index++);
 		}
 		return prev;
 	}
 
 	take(n) {
 		// TODO: parameter check
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
-			var i = 0;
+			let i = 0;
 			for (let k of orig) {
 				if (i++ < n) {
 					yield k;
@@ -115,30 +91,31 @@ class Lazy {
 					return;
 				}
 			}
-		}, false);
+		});
 	}
+
 	drop(n) {
 		// TODO: parameter check
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
-			var i = 0;
+			let index = 0;
 			for (let k of orig) {
-				if (i++ < n) {
+				if (index++ < n) {
 					continue;
 				} else {
 					yield k;
 				}
 			}
-		}, orig.infinite);
+		});
 	}
 
 	takeWhile(pred) {
 		if (typeof pred !== 'function') {
 			throw new TypeError();
 		}
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
-			var take = true;
+			let take = true;
 			for (let k of orig) {
 				take = take && pred(k);
 				if (take) {
@@ -147,7 +124,7 @@ class Lazy {
 					return;
 				}
 			}
-		}, false);		// NB: not correct if `pred` never returns `false`
+		});
 	}
 
 	/*
@@ -159,9 +136,9 @@ class Lazy {
 		if (typeof pred !== 'function') {
 			throw new TypeError();
 		}
-		var orig = this;
+		let orig = this;
 		return new Lazy(function*() {
-			var drop = true;
+			let drop = true;
 			for (let k of orig) {
 				drop = drop && pred(k);
 				if (drop) {
@@ -170,30 +147,26 @@ class Lazy {
 					yield k;
 				}
 			}
-		}, orig.infinite);
+		});
 	}
 
-	static from(f, infinite = false) {
+	static from(f) {
 		if (typeof f !== 'function') {
 			throw new TypeError('.from requires a function parameter');
 		}
 		return new Lazy(function*() {
 			yield* f();
-		}, infinite);
+		});
 	}
 
-	static cons(a, b, infinite) {
-		var infinite;
+	static cons(a, b) {
 		if (b[SI] === undefined) {
 			throw new TypeError('.cons requires an iterable second parameter');
-		}
-		if (infinite == undefined && b instanceof Lazy) {
-			infinite = b.infinite;
 		}
 		return new Lazy(function*() {
 			yield a;
 			yield* b;
-		}, infinite) ;
+		});
 	}
 
 	static naturals(n = 0) {
@@ -211,7 +184,7 @@ class Lazy {
 			while (true) {
 				yield i++;
 			}
-		}, true);
+		});
 	}
 
 	static zip(a, b) {
@@ -233,7 +206,7 @@ class Lazy {
 				}
 				yield [ na.value, nb.value ];
 			}
-		}, a.infinite && b.infinite);
+		});
 	}
 
 	static zipWith(f, a, b) {

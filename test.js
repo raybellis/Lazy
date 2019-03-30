@@ -37,7 +37,6 @@ function fibs2() {
 }
 
 console.log([ ... primes().take(10) ]);
-console.log(fibs2().length);
 console.log([ ... fibs().take(10) ]);
 
 let sum = (a, b) => a + b
